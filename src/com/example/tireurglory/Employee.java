@@ -1,32 +1,41 @@
 package com.example.tireurglory;
 
+import java.io.Serializable;
 import java.util.Date;
+
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
+import javax.validation.constraints.NotNull;
 
-@PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Employee {
+@PersistenceCapable(identityType = IdentityType.APPLICATION, detachable="true")
+public class Employee implements Serializable {
+
+	/** シリアルバージョンID */
+	private static final long serialVersionUID = 3132153639598418105L;
 
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Long id;
 
+	@NotNull
 	@Persistent
 	private String firstName;
 
+	@NotNull
 	@Persistent
 	private String lastName;
 
 	@Persistent
 	private Date hireDate;
 
-	public Employee(String firstName, String lastName, Date hireDate) {
+	public Employee() {}
+
+	public Employee(String firstName, String lastName) {
 		this.firstName = firstName;
 		this.lastName = lastName;
-		this.hireDate = hireDate;
 	}
 
 	public Long getId() {
