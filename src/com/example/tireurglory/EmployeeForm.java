@@ -34,6 +34,8 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 	private Button cancel = new Button("キャンセル", (ClickListener) this);
 	/** 編集ボタン */
 	private Button edit = new Button("編集", (ClickListener) this);
+	/** 削除ボタン */
+	private Button delete = new Button("削除", (ClickListener) this);
 
 	/** 新規追加モードフラグ */
 	private boolean newContactMode = false;
@@ -69,6 +71,7 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 		footer.addComponent(save);
 		footer.addComponent(cancel);
 		footer.addComponent(edit);
+		footer.addComponent(delete);
 		footer.setVisible(false);
 
 		setFooter(footer);
@@ -153,6 +156,7 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 		save.setVisible(!readOnly);
 		cancel.setVisible(!readOnly);
 		edit.setVisible(readOnly);
+		delete.setVisible(readOnly);
 	}
 
 	/*
@@ -214,6 +218,22 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 			// 読み取り専用を解除し、内容を編集可能とする。
 			setReadOnly(false);
 
+		} else if (source == delete) { // ●削除が押されたとき
+
+			// データストアから削除
+			@SuppressWarnings("unchecked")
+			BeanItem<Employee> item = (BeanItem<Employee>) getItemDataSource();
+			Employee employee = (Employee) item.getBean();
+			PersistenceManager pm = PMF.get().getPersistenceManager();
+			try {
+				Object obj = pm.getObjectById(Employee.class, employee.getId());
+				pm.deletePersistent(obj);
+			} finally {
+				pm.close();
+			}
+
+			app.getDataSource().removeItem(employee);
+			setItemDataSource(null);
 		}
 	}
 
