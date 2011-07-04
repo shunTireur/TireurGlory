@@ -1,9 +1,12 @@
 package com.example.tireurglory;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.jdo.PersistenceManager;
+
+import org.vaadin.dialogs.ConfirmDialog;
 
 import com.vaadin.addon.beanvalidation.BeanValidationForm;
 import com.vaadin.data.Item;
@@ -20,13 +23,10 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
 
 public class EmployeeForm extends BeanValidationForm<Employee> implements
-		ClickListener {
+		Serializable, ClickListener, ConfirmDialog.Listener {
 
 	/** シリアルバージョンID */
 	private static final long serialVersionUID = -7256417175627382941L;
-
-	/** アプリケーションクラス */
-	private TireurgloryApplication app;
 
 	/** 保存ボタン */
 	private Button save = new Button("保存", (ClickListener) this);
@@ -42,6 +42,8 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 	/** 新規追加を行なう場合に使用するデータオブジェクト */
 	private Employee newEmployee = null;
 
+	private EmployeeSearchPanel parentPanel;
+
 	/**
 	 * コンストラクタ
 	 *
@@ -54,12 +56,11 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 	/**
 	 * コンストラクタ
 	 *
-	 * @param app
 	 */
-	public EmployeeForm(TireurgloryApplication app) {
+	public EmployeeForm(EmployeeSearchPanel parentPanel) {
 		super(Employee.class);
 
-		this.app = app;
+		this.parentPanel = parentPanel;
 
 		// 即時反映を行なわない。編集はバッファリングモードで
 		setImmediate(true);
@@ -115,7 +116,6 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 		setReadOnly(false);
 	}
 
-
 	/*
 	 * (非 Javadoc)
 	 *
@@ -154,7 +154,11 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 
 		// 保存・キャンセル・編集ボタンの状態を変更
 		save.setVisible(!readOnly);
-		cancel.setVisible(!readOnly);
+		if (!newContactMode) {
+			cancel.setVisible(!readOnly);
+		} else {
+			cancel.setVisible(false);
+		}
 		edit.setVisible(readOnly);
 		delete.setVisible(readOnly);
 	}
@@ -191,8 +195,6 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 				// 新規追加モードの場合は、テーブルのコンテナに追加されたデータを反映し、
 				// 自分自身が保持しているデータと同期をとる
 				if (newContactMode) {
-					Item addedItem = app.getDataSource().addItem(newEmployee);
-					setItemDataSource(addedItem);
 					newContactMode = false;
 				}
 
@@ -220,21 +222,31 @@ public class EmployeeForm extends BeanValidationForm<Employee> implements
 
 		} else if (source == delete) { // ●削除が押されたとき
 
+			ConfirmDialog.show(getWindow(), "Please Confirm:",
+					"Are you really sure?", "I am", "Not quite", (ConfirmDialog.Listener) this);
+		}
+	}
+
+	public void onClose(ConfirmDialog dialog) {
+		if (dialog.isConfirmed()) {
 			// データストアから削除
 			@SuppressWarnings("unchecked")
 			BeanItem<Employee> item = (BeanItem<Employee>) getItemDataSource();
 			Employee employee = (Employee) item.getBean();
-			PersistenceManager pm = PMF.get().getPersistenceManager();
+			PersistenceManager pm = PMF.get()
+					.getPersistenceManager();
 			try {
-				Object obj = pm.getObjectById(Employee.class, employee.getId());
+				Object obj = pm.getObjectById(
+						Employee.class, employee.getId());
 				pm.deletePersistent(obj);
 			} finally {
 				pm.close();
 			}
 
-			app.getDataSource().removeItem(employee);
+			parentPanel.getDataSource()
+					.removeItem(employee);
+
 			setItemDataSource(null);
 		}
 	}
-
 }

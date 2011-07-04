@@ -1,5 +1,7 @@
 package com.example.tireurglory;
 
+import java.io.Serializable;
+
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -11,7 +13,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
-public class EmployeeWindow extends Window implements Button.ClickListener,
+public class EmployeeWindow extends Window implements Serializable, Button.ClickListener,
 		Property.ValueChangeListener {
 
 	/** シリアルバージョンID */
@@ -112,8 +114,8 @@ public class EmployeeWindow extends Window implements Button.ClickListener,
 
 		VerticalLayout layout = new VerticalLayout();
 		{
-			form = new EmployeeForm(app);
-			layout.addComponent(form);
+//			form = new EmployeeForm(app);
+//			layout.addComponent(form);
 		}
 		panel.setContent(layout);
 
